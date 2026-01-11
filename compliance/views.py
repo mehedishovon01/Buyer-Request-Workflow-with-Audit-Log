@@ -19,6 +19,10 @@ class EvidenceViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
+        # Handle schema generation
+        if getattr(self, 'swagger_fake_view', False):
+            return Evidence.objects.none()
+            
         # Factories can only see their own evidence
         if self.request.user.role == User.Role.FACTORY:
             return Evidence.objects.filter(factory=self.request.user)
@@ -80,6 +84,10 @@ class RequestViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
+        # Handle schema generation
+        if getattr(self, 'swagger_fake_view', False):
+            return Request.objects.none()
+            
         user = self.request.user
         
         # Factories can only see requests made to them
@@ -209,6 +217,10 @@ class FactoryRequestViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
+        # Handle schema generation
+        if getattr(self, 'swagger_fake_view', False):
+            return Request.objects.none()
+            
         # Only return requests for the current factory user
         if self.request.user.role != User.Role.FACTORY:
             return Request.objects.none()
