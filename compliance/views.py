@@ -23,10 +23,22 @@ class EvidenceViewSet(viewsets.ModelViewSet):
         if getattr(self, 'swagger_fake_view', False):
             return Evidence.objects.none()
             
+        user = self.request.user
+        
         # Factories can only see their own evidence
-        if self.request.user.role == User.Role.FACTORY:
-            return Evidence.objects.filter(factory=self.request.user)
-        # Buyers can see all evidence (or adjust as needed)
+        if user.role == User.Role.FACTORY:
+            return Evidence.objects.filter(factory=user)
+            
+        # Buyers can only see evidence that has been shared with them
+        if user.role == User.Role.BUYER:
+            # Get IDs of all evidence versions shared with this user
+            shared_evidence_ids = EvidenceVersion.objects.filter(
+                shared_with__user=user
+            ).values_list('evidence_id', flat=True)
+            
+            return Evidence.objects.filter(id__in=shared_evidence_ids)
+            
+        # Admins can see all evidence
         return Evidence.objects.all()
     
     def get_serializer_class(self):
@@ -42,8 +54,37 @@ class EvidenceViewSet(viewsets.ModelViewSet):
             }, code='permission_denied')
         serializer.save(factory=self.request.user)
     
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['get'])
     def versions(self, request, pk=None):
+        """
+        List all versions of an evidence document that the user has access to
+        """
+        evidence = self.get_object()
+        user = request.user
+        
+        # Check if user has access to this evidence
+        if user.role == User.Role.BUYER and not evidence.versions.filter(
+            shared_with__user=user
+        ).exists() and evidence.factory != user:
+            return Response(
+                {"detail": "You don't have permission to view this evidence."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+            
+        # Get all versions, filtered by access if buyer
+        versions = evidence.versions.all()
+        if user.role == User.Role.BUYER:
+            versions = versions.filter(shared_with__user=user)
+        
+        serializer = EvidenceVersionSerializer(
+            versions, 
+            many=True,
+            context={'request': request}
+        )
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def add_version(self, request, pk=None):
         """
         Add a new version to an existing evidence document.
         POST /evidence/:id/versions/

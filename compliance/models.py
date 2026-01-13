@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from users.models import User, AuditLog
+from django.db.models import Q
 
 
 class Evidence(models.Model):
@@ -58,7 +59,16 @@ class EvidenceVersion(models.Model):
     class Meta:
         ordering = ['evidence', '-version_number']
         unique_together = ('evidence', 'version_number')
-    
+        
+    def can_be_accessed_by(self, user):
+        """Check if a user has access to this evidence version"""
+        # Factory users can access their own evidence
+        if user.role == User.Role.FACTORY and self.evidence.factory == user:
+            return True
+            
+        # Check if this version was shared with the user
+        return self.shared_with.filter(user=user).exists()
+
     def __str__(self):
         return f"{self.evidence.name} v{self.version_number}"
     
@@ -205,6 +215,14 @@ class RequestItem(models.Model):
             if self.status == self.Status.FULFILLED:
                 from .audit_logger import log_request_item_fulfillment
                 log_request_item_fulfillment(self.fulfilled_by, self)
+                
+                # Share the evidence version with the buyer
+                from .models import SharedEvidence
+                SharedEvidence.objects.get_or_create(
+                    version=self.evidence_version,
+                    user=self.request.buyer,
+                    defaults={'shared_by': self.fulfilled_by}
+                )
             else:
                 # Log other status changes
                 from .audit_logger import log_action
@@ -222,3 +240,30 @@ class RequestItem(models.Model):
                         'to': self.status
                     }
                 )
+
+
+class SharedEvidence(models.Model):
+    """Tracks which evidence versions are shared with which users"""
+    version = models.ForeignKey(
+        EvidenceVersion, 
+        on_delete=models.CASCADE,
+        related_name='shared_with'
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='shared_evidence_versions'
+    )
+    shared_at = models.DateTimeField(auto_now_add=True)
+    shared_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='shared_evidence'
+    )
+    
+    class Meta:
+        unique_together = ('version', 'user')
+        
+    def __str__(self):
+        return f"{self.version} shared with {self.user}"

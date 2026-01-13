@@ -2,6 +2,7 @@
 
 A RESTful API for managing buyer requests, evidence documents, and maintaining audit logs.
 
+# Phase AA. Title: Buyer Request Workflow + Audit Log (Truth-at-Source Controls)
 ## Table of Contents
 - [Features](#features)
 - [Prerequisites](#prerequisites)
@@ -13,6 +14,9 @@ A RESTful API for managing buyer requests, evidence documents, and maintaining a
   - [Request Endpoints](#request-endpoints)
   - [Factory Request Endpoints](#factory-request-endpoints)
   - [Audit Logs](#audit-logs)
+- [Project Documentation](#project-documentation)
+
+## Project Documentation
 
 ## Features
 - User authentication with JWT
@@ -167,6 +171,12 @@ curl -X GET "http://127.0.0.1:8000/api/v1/auth/audit/?page=1&page_size=10" \
 - `403 Forbidden`: Insufficient permissions
 - `404 Not Found`: Resource not found
 - `500 Internal Server Error`: Server error
+
+
+# Phase BB: Title: Phase A “Thin Slice” + Decisions + Change Request
+- [Part A - Mini Design Document](./phase-BB/part_A_1_page_Mini_Design_Doc.md)
+- [Part B - Implementation Details](./phase-BB/Part%20B%20%E2%80%94%20Implement%20ONE%20thin%20slice%20%28Required%29.md)
+- [Part C - Change Request](./phase-BB/Part%20C%20%E2%80%94%20Change%20Request.md)
 
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details
