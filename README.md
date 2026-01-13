@@ -2,6 +2,11 @@
 
 A RESTful API for managing buyer requests, evidence documents, and maintaining audit logs.
 
+## Repository Structure
+This repository contains both Phase-AA and Phase-BB implementations. The current `main` branch contains the latest Phase-BB code. If you need to access the Phase-AA code, you can find it at commit `e844d39`.
+
+For more details on working with different versions, see the [Git Workflow Documentation](#git-workflow-documentation) section below.
+
 # Phase AA. Title: Buyer Request Workflow + Audit Log (Truth-at-Source Controls)
 ## Table of Contents
 - [Features](#features)
@@ -177,6 +182,46 @@ curl -X GET "http://127.0.0.1:8000/api/v1/auth/audit/?page=1&page_size=10" \
 - [Part A - Mini Design Document](./phase-BB/part_A_1_page_Mini_Design_Doc.md)
 - [Part B - Implementation Details](./phase-BB/Part%20B%20%E2%80%94%20Implement%20ONE%20thin%20slice%20%28Required%29.md)
 - [Part C - Change Request](./phase-BB/Part%20C%20%E2%80%94%20Change%20Request.md)
+
+## Git Workflow Documentation
+
+### Viewing Commit History
+
+#### View Compact Commit History
+```bash
+git log --oneline
+# Example output:
+# e4d2151 (HEAD -> main, origin/main, origin/HEAD) Phase-BB
+# 53b83d6 fix: swagger issue, add readme for documentation
+# e844d39 initial:commit setup the full system
+# 67c8019 Initial commit
+```
+
+### Working with Commits
+
+#### Checkout a Specific Commit
+```bash
+git checkout <commit-hash>
+# Example:
+git checkout 53b83d6  # Checks out the specific commit
+```
+
+### Accessing Phase-AA Code
+To work with the Phase-AA implementation, use:
+```bash
+git checkout e844d39  # Checkout Phase-AA code
+```
+
+### Viewing Changes
+
+#### See Changes in Working Directory
+```bash
+git status  # Shows current branch and changes
+
+#### Return to the Latest Commit
+```bash
+git checkout main  # Or your branch name
+```
 
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details
